@@ -2,6 +2,12 @@
 
 use nom::{
     branch::alt, bytes::complete::is_not, bytes::complete::tag, bytes::complete::take_while1,
+    bytes::complete::take_while,
+    bytes::complete::take_until,
+    bytes::complete::is_a,
+    character::is_alphanumeric,
+    character::is_space,
+    bytes::complete::take,
     character::complete::char, sequence::delimited, IResult,
 };
 
@@ -10,11 +16,21 @@ use crate::data_graph::DataGraph;
 pub struct Parser;
 
 impl Parser {
+    fn array(input: &str) -> IResult<&str, &str> {
+        let (input, _) = char('[')(input)?;
+        let (input, _) = take_until("]")(input)?;
+        let (input, _) = char(']')(input)?;
+
+        // FIXME: Get actual value contained between brackets
+        Ok((input, "[]"))
+    }
+
+    fn asterisks(input: &str) -> IResult<&str, &str> {
+        take_while1(|c| c == '*' || c == ' ' || c == '\t')(input)
+    }
+
     fn pointer(input: &str) -> IResult<&str, &str> {
-        alt((
-            take_while1(|c| c == '*'),
-            delimited(char('['), is_not("]"), char(']')),
-        ))(input)
+        alt((Parser::asterisks, Parser::asterisks))(input)
     }
 
     fn space(input: &str) -> IResult<&str, &str> {
@@ -88,6 +104,26 @@ mod tests {
         }
     }
 
+    #[test]
+    fn asterisks() {
+        assert_eq!(Parser::pointer("*"), Ok(("", "*")));
+        assert_eq!(Parser::pointer("*****"), Ok(("", "*****")));
+        assert_eq!(Parser::pointer("** *"), Ok(("", "** *")));
+    }
+
+    #[test]
+    fn array() {
+        assert_eq!(Parser::array("[]"), Ok(("", "[]")));
+        assert_eq!(Parser::array("[12]"), Ok(("", "[]")));
+        assert_eq!(Parser::array("[MACRO]"), Ok(("", "[]")));
+        assert_eq!(Parser::array("[MACRO + MACRO + 12]"), Ok(("", "[]")));
+        assert_eq!(Parser::array("[MACRO] rest"), Ok((" rest", "[]")));
+    }
+
+    #[test]
+    fn pointer() {
+    }
+
     fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
         for (key, values) in dg.iter_all() {
             if key.name.as_ref().unwrap() == lhs {
@@ -112,6 +148,7 @@ mod tests {
         None
     }
 
+    /*
     #[test]
     fn basic_struct() {
         let input = r#"
@@ -138,4 +175,5 @@ mod tests {
         assert!(get(&dg, "basic").unwrap().fields.contains(&f2));
         assert!(get(&dg, "basic").unwrap().fields.contains(&f3));
     }
+    */
 }
