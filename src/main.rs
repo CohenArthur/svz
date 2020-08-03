@@ -1,10 +1,12 @@
 mod data_graph;
 mod data_structures;
 mod render;
+mod parser;
 
 use data_graph::DataGraph;
 use data_structures::DataStructure;
 use render::Dot;
+use parser::Parser;
 
 fn main() {
     let mut s_0 = DataStructure::new(Some("linked_list".to_string()));
@@ -21,6 +23,7 @@ fn main() {
     let mut dg = DataGraph::new();
 
     dg.add_edge(&s_0, &s_1);
+    dg.add_edge(&s_1, &s_1);
 
     println!("{}", dg.to_dot());
 }
