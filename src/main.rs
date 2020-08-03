@@ -12,6 +12,7 @@ fn main() {
     stru.add_field("buffer".to_string(), "char *".to_string());
     stru.add_field("size".to_string(), "size_t".to_string());
     stru.add_field("capacity".to_string(), "size_t".to_string());
+    stru.add_field("field0".to_string(), "struct SomeVeryLongStruct".to_string());
 
     println!("{}", stru.to_dot());
     println!("SomeStruct -> \"a\"");

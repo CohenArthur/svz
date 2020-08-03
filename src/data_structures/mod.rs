@@ -31,6 +31,9 @@ impl DataStructure {
 
     /// Inserts a field into the data structure
     pub fn add_field(&mut self, name: String, type_name: String) {
+        // Set the padding as the size of the longest type + BASE_PADDING
+        let tmp_padding = type_name.len() + BASE_PADDING;
+        self.padding = if tmp_padding > self.padding { tmp_padding } else { self.padding };
         self.fields.push(DataField { name, type_name })
     }
 }
@@ -39,16 +42,19 @@ impl render::Dot for DataStructure {
     fn to_dot(&self) -> String {
         let mut base = format!("{} [label=<<B>struct {}</B>", self.name.as_ref().unwrap(), self.name.as_ref().unwrap()); // FIXME: Dont' unwrap
         for field in self.fields.iter() {
+            // Newline + align left
             base.push_str("<BR ALIGN=\"LEFT\"/>");
             base.push_str(&field.type_name);
 
             // Add padding spaces
-            for _ in 0..self.padding { base.push(' '); }
+            for _ in 0..self.padding - field.type_name.len() { base.push(' '); }
 
             base.push_str(&field.name);
         }
 
-        base.push_str(">]");
+        // Close the HTML-like string
+        base.push_str("<BR ALIGN=\"LEFT\"/>>]");
+
         base
     }
 }
