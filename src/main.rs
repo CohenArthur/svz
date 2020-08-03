@@ -8,5 +8,4 @@ use data_structures::DataStructure;
 use parser::Parser;
 use render::Dot;
 
-fn main() {
-}
+fn main() {}

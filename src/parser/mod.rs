@@ -4,10 +4,10 @@ use nom::{
     branch::alt, bytes::complete::is_a, bytes::complete::is_not, bytes::complete::tag,
     bytes::complete::take, bytes::complete::take_until, bytes::complete::take_while,
     bytes::complete::take_while1, character::complete::char, character::is_alphanumeric,
-    combinator::opt,
-    multi::many0,
-    character::is_space, sequence::delimited, IResult,
+    character::is_space, combinator::opt, multi::many0, sequence::delimited, IResult,
 };
+
+use crate::render::Dot;
 
 use crate::data_graph::DataGraph;
 use crate::data_structures::{DataField, DataStructure};
@@ -114,24 +114,42 @@ impl Parser {
 
         let field_plus_newline = |i| {
             let (i, _) = opt(Parser::space)(i)?;
-            let (i, field) =  Parser::parse_field(i)?;
+            let (i, field) = Parser::parse_field(i)?;
             let (i, _) = char(';')(i)?;
             let (i, _) = opt(Parser::space)(i)?;
 
             Ok((i, field))
         };
 
-        let (input, field_vec) = many0(field_plus_newline)(fields)?;
+        // We don't need to change input here, since it has to contain the rest
+        // of the code
+        let field_vec = match many0(field_plus_newline)(fields) {
+            Ok((_, field_vec)) => field_vec,
+            Err(_) => vec![],
+        };
 
-        for field in field_vec.iter() {
-            st.add_field(*field);
-        }
+        field_vec.iter().for_each(|field| st.add_field(*field));
 
         Ok((input, st))
     }
 
-    pub fn parse<'a>(data: &str) -> DataGraph<'a> {
-        DataGraph::new()
+    pub fn parse<'a>(input: &'a str) -> String {
+        let mut dg = DataGraph::new();
+
+        let any_plus_struct = |i| {
+            let (i, _) = alt((take_until("typedef"), take_until("struct")))(i)?;
+            Parser::parse_struct(i)
+        };
+
+        let struct_vec = match many0(any_plus_struct)(input) {
+            Ok((_, struct_vec)) => struct_vec,
+            Err(_) => vec![],
+        };
+
+        struct_vec.iter().for_each(|s| dg.add_edge(s, s));
+
+        // FIXME: Return DataGraph and not String
+        dg.to_dot()
     }
 }
 
@@ -211,22 +229,49 @@ mod tests {
     #[test]
     fn identifier() {
         assert_eq!(Parser::identifier("size_t id"), Ok((" id", "size_t")));
-        assert_eq!(Parser::identifier("1255 something"), Ok((" something", "1255")));
+        assert_eq!(
+            Parser::identifier("1255 something"),
+            Ok((" something", "1255"))
+        );
     }
 
     fn parse_type() {
-        assert_eq!(Parser::parse_type("size_t something"), Ok((" something", "size_t")));
-        assert_eq!(Parser::parse_type("size_t **something"), Ok((" something", "size_t")));
-        assert_eq!(Parser::parse_type("struct some_name something"), Ok((" something", "some_name")));
+        assert_eq!(
+            Parser::parse_type("size_t something"),
+            Ok((" something", "size_t"))
+        );
+        assert_eq!(
+            Parser::parse_type("size_t **something"),
+            Ok((" something", "size_t"))
+        );
+        assert_eq!(
+            Parser::parse_type("struct some_name something"),
+            Ok((" something", "some_name"))
+        );
     }
 
     #[test]
     fn parse_field() {
-        assert_eq!(Parser::parse_field("size_t something"), Ok(("", DataField::new("size_t", "something"))));
-        assert_eq!(Parser::parse_field("char* buffer"), Ok(("", DataField::new("char*", "buffer"))));
-        assert_eq!(Parser::parse_field("char **** buffer"), Ok(("", DataField::new("char", "buffer"))));
-        assert_eq!(Parser::parse_field("char[] buffer"), Ok(("", DataField::new("char[]", "buffer"))));
-        assert_eq!(Parser::parse_field("struct somestruct * ptr"), Ok(("", DataField::new("somestruct", "ptr"))));
+        assert_eq!(
+            Parser::parse_field("size_t something"),
+            Ok(("", DataField::new("size_t", "something")))
+        );
+        assert_eq!(
+            Parser::parse_field("char* buffer"),
+            Ok(("", DataField::new("char*", "buffer")))
+        );
+        assert_eq!(
+            Parser::parse_field("char **** buffer"),
+            Ok(("", DataField::new("char", "buffer")))
+        );
+        assert_eq!(
+            Parser::parse_field("char[] buffer"),
+            Ok(("", DataField::new("char[]", "buffer")))
+        );
+        assert_eq!(
+            Parser::parse_field("struct somestruct * ptr"),
+            Ok(("", DataField::new("somestruct", "ptr")))
+        );
     }
 
     #[test]

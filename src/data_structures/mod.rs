@@ -16,7 +16,7 @@ pub struct DataField<'a> {
     type_name: &'a str,
 }
 
-impl <'a> DataField<'a> {
+impl<'a> DataField<'a> {
     // Create a new DataField
     pub fn new(type_name: &'a str, name: &'a str) -> DataField<'a> {
         DataField { name, type_name }
@@ -37,7 +37,7 @@ pub struct DataStructure<'a> {
     padding: usize,
 }
 
-impl <'a> DataStructure<'a> {
+impl<'a> DataStructure<'a> {
     /// Create a new data structure with a given name
     pub fn new(name: Option<&'a str>) -> DataStructure<'a> {
         DataStructure {
