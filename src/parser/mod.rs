@@ -20,25 +20,26 @@ impl Parser {
         let (input, _) = char('[')(input)?;
         let (input, _) = take_until("]")(input)?;
         let (input, _) = char(']')(input)?;
+        let (input, _) = take_while(|c| is_space(c as u8))(input)?;
 
         // FIXME: Get actual value contained between brackets
         Ok((input, "[]"))
     }
 
     fn asterisks(input: &str) -> IResult<&str, &str> {
-        take_while1(|c| c == '*' || c == ' ' || c == '\t')(input)
+        take_while1(|c| c == '*' || is_space(c as u8))(input)
     }
 
     fn pointer(input: &str) -> IResult<&str, &str> {
-        alt((Parser::asterisks, Parser::asterisks))(input)
+        alt((Parser::asterisks, Parser::array))(input)
     }
 
     fn space(input: &str) -> IResult<&str, &str> {
-        take_while1(|c| c == ' ' || c == '\t')(input)
+        take_while1(|c| is_space(c as u8))(input)
     }
 
     fn identifier(input: &str) -> IResult<&str, &str> {
-        take_while1(|c| c != ' ' && c != '\t')(input)
+        take_while1(|c| !is_space(c as u8))(input)
     }
 
     fn typedef_tok(input: &str) -> IResult<&str, &str> {
@@ -106,9 +107,9 @@ mod tests {
 
     #[test]
     fn asterisks() {
-        assert_eq!(Parser::pointer("*"), Ok(("", "*")));
-        assert_eq!(Parser::pointer("*****"), Ok(("", "*****")));
-        assert_eq!(Parser::pointer("** *"), Ok(("", "** *")));
+        assert_eq!(Parser::asterisks("*"), Ok(("", "*")));
+        assert_eq!(Parser::asterisks("*****"), Ok(("", "*****")));
+        assert_eq!(Parser::asterisks("** *"), Ok(("", "** *")));
     }
 
     #[test]
@@ -117,11 +118,15 @@ mod tests {
         assert_eq!(Parser::array("[12]"), Ok(("", "[]")));
         assert_eq!(Parser::array("[MACRO]"), Ok(("", "[]")));
         assert_eq!(Parser::array("[MACRO + MACRO + 12]"), Ok(("", "[]")));
-        assert_eq!(Parser::array("[MACRO] rest"), Ok((" rest", "[]")));
+        assert_eq!(Parser::array("[MACRO] rest"), Ok(("rest", "[]")));
     }
 
     #[test]
     fn pointer() {
+        assert_eq!(Parser::pointer("*"), Ok(("", "*")));
+        assert_eq!(Parser::pointer("[]"), Ok(("", "[]")));
+        assert_eq!(Parser::pointer("[] rest"), Ok(("rest", "[]")));
+        assert_eq!(Parser::pointer("** rest"), Ok(("rest", "** ")));
     }
 
     fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
