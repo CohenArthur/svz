@@ -9,16 +9,16 @@ const BASE_PADDING: usize = 4;
 const ACCENT_COLOR: &str = "purple";
 
 /// Fields contained inside the data structures
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Hash)]
 struct DataField {
     name: String,
     type_name: String,
 }
 
 /// Struct used to represent the different data structures that svz will parse
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Hash)]
 pub struct DataStructure {
-    name: Option<String>,
+    pub name: Option<String>,
     fields: Vec<DataField>,
     padding: usize,
 }
@@ -43,10 +43,7 @@ impl DataStructure {
 
 impl render::Dot for DataStructure {
     fn to_dot(&self) -> String {
-        let mut base = format!(
-            "{0} [label=<<B>struct {0}</B>",
-            self.name.as_ref().unwrap(),
-        ); // FIXME: Dont' unwrap
+        let mut base = format!("{0} [label=<<B>struct {0}</B>", self.name.as_ref().unwrap(),); // FIXME: Dont' unwrap
         for field in self.fields.iter() {
             // Newline + align left
             base.push_str("<BR ALIGN=\"LEFT\"/>");
@@ -56,7 +53,12 @@ impl render::Dot for DataStructure {
             ));
 
             // Padding + field name
-            base.push_str(&format!("{: <1$}{2}", "", self.padding - field.type_name.len(), field.name));
+            base.push_str(&format!(
+                "{: <1$}{2}",
+                "",
+                self.padding - field.type_name.len(),
+                field.name
+            ));
         }
 
         // Close the HTML-like string
