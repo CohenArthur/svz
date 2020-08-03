@@ -46,10 +46,6 @@ impl<'a> DataGraph<'a> {
     pub fn add_edge(&mut self, lhs: &'a DataStructure, rhs: &'a DataStructure) {
         self.data.insert(lhs, rhs)
     }
-
-    pub fn iter_all(&self) -> multimap::IterAll<'_, &DataStructure, std::vec::Vec<&DataStructure>> {
-        self.data.iter_all()
-    }
 }
 
 impl Dot for DataGraph<'_> {

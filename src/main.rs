@@ -1,11 +1,16 @@
-mod data_graph;
-mod data_structures;
+use std::{env, fs};
+
 mod parser;
 mod render;
+mod data_structures;
+mod data_graph;
 
-use data_graph::DataGraph;
-use data_structures::DataStructure;
 use parser::Parser;
-use render::Dot;
 
-fn main() {}
+fn main() {
+    for file in env::args() {
+        let input = fs::read_to_string(file).unwrap();
+
+        println!("{}", Parser::parse(&input));
+    }
+}
