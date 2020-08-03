@@ -50,20 +50,26 @@ impl<'a> DataGraph<'a> {
 
 impl Dot for DataGraph<'_> {
     fn to_dot(&self) -> String {
+        // Graphviz header
         let mut base = String::from("digraph svz {");
 
         for (key, values) in self.data.iter_all() {
             base.push_str(&format!("{}\n", key.to_dot()));
+
+            // Add each dependency
             for value in values.iter() {
                 base.push_str(&format!("{}\n", value.to_dot()));
+
+                // Add the edge
                 base.push_str(&format!(
-                    "{} -> {};",
+                    "{} -> {};\n",
                     key.name.as_ref().unwrap(),
                     value.name.as_ref().unwrap()
                 )); // FIXME: NO unwrap
             }
         }
 
+        // Closing bracket from the header
         base.push('}');
         base
     }

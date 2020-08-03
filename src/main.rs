@@ -8,7 +8,6 @@ use render::Dot;
 
 fn main() {
     let mut s_0 = DataStructure::new(Some("SomeStruct".to_string()));
-
     s_0.add_field("buffer".to_string(), "char *".to_string());
     s_0.add_field("size".to_string(), "size_t".to_string());
     s_0.add_field("capacity".to_string(), "size_t".to_string());
