@@ -235,18 +235,19 @@ mod tests {
         );
     }
 
+    #[test]
     fn parse_type() {
         assert_eq!(
             Parser::parse_type("size_t something"),
-            Ok((" something", "size_t"))
+            Ok(("something", "size_t"))
         );
         assert_eq!(
             Parser::parse_type("size_t **something"),
-            Ok((" something", "size_t"))
+            Ok(("something", "size_t"))
         );
         assert_eq!(
             Parser::parse_type("struct some_name something"),
-            Ok((" something", "some_name"))
+            Ok(("something", "some_name"))
         );
     }
 
@@ -299,7 +300,7 @@ mod tests {
         st.add_field(f0);
         st.add_field(f1);
 
-        assert_eq!(Parser::parse_struct(input), Ok(("", st)))
+        assert_eq!(Parser::parse_struct(input), Ok((" some_name", st)))
     }
 
     fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
