@@ -48,8 +48,44 @@ mod tests {
         assert_eq!(Parser::space("    "), Ok(("", "    ")));
         assert_eq!(Parser::space("  \t"), Ok(("", "  \t")));
         assert_eq!(Parser::space(" \tSomething"), Ok(("Something", " \t")));
-        assert_eq!(Parser::space("   Something\t\t"), Ok(("Something\t\t", "   ")));
+        assert_eq!(
+            Parser::space("   Something\t\t"),
+            Ok(("Something\t\t", "   "))
+        );
         assert_eq!(Parser::space("\t\t\t1234"), Ok(("1234", "\t\t\t")));
+    }
+
+    #[test]
+    fn struct_tok() {
+        assert_eq!(Parser::struct_tok("struct"), Ok(("", "struct")));
+        assert_eq!(Parser::struct_tok("struct name"), Ok((" name", "struct")));
+        assert_eq!(
+            Parser::struct_tok("struct name { int f0; char f1; }"),
+            Ok((" name { int f0; char f1; }", "struct"))
+        );
+    }
+
+    #[test]
+    fn typedef_tok() {
+        assert_eq!(Parser::typedef_tok("typedef"), Ok(("", "typedef")));
+        assert_eq!(
+            Parser::typedef_tok("typedef struct"),
+            Ok((" struct", "typedef"))
+        );
+    }
+
+    #[test]
+    fn typedef_struct() {
+        match Parser::typedef_tok("typedef struct name { type field0; type field1; }") {
+            Ok((remaining, _)) => {
+                let remaining = Parser::space(remaining).unwrap().0;
+                assert_eq!(
+                    Parser::struct_tok(remaining),
+                    Ok((" name { type field0; type field1; }", "struct"))
+                );
+            }
+            Err(_) => assert!(false),
+        }
     }
 
     fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
