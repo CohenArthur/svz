@@ -5,6 +5,7 @@ use nom::{
     bytes::complete::take, bytes::complete::take_until, bytes::complete::take_while,
     bytes::complete::take_while1, character::complete::char, character::is_alphanumeric,
     combinator::opt,
+    multi::many0,
     character::is_space, sequence::delimited, IResult,
 };
 
@@ -65,6 +66,7 @@ impl Parser {
         let (input, _) = opt(Parser::enum_tok)(input)?;
         let (input, _) = opt(Parser::union_tok)(input)?;
         let (input, _) = opt(Parser::struct_tok)(input)?;
+        // FIXME: Use alt() instead
 
         // Skip the spaces after the type specifier
         let (input, _) = opt(Parser::space)(input)?;
@@ -87,7 +89,40 @@ impl Parser {
     }
 
     fn parse_struct(input: &str) -> IResult<&str, DataStructure> {
-        Ok((input, DataStructure::new(Some("test"))))
+        // A structure declaration can start with typedef
+        let (input, _) = opt(Parser::typedef_tok)(input)?;
+        // Skip the spaces after `typedef`
+        let (input, _) = opt(Parser::space)(input)?;
+
+        let (input, struct_name) = opt(Parser::identifier)(input)?;
+
+        let mut st = match struct_name {
+            Some(name) => DataStructure::new(Some(name)),
+            None => DataStructure::new(None),
+        };
+
+        // Skip the newlines and spaces
+        let (input, _) = opt(Parser::space)(input)?;
+
+        // Parse a field, then a newline, while we can
+        // FIXME: Don't break on inner enum/struct/union declarations
+        let (input, fields) = delimited(char('{'), is_not("}"), char('}'))(input)?;
+
+        let field_plus_newline = |i| {
+            let (i, field) =  Parser::parse_field(i)?;
+            let (i, _) = char(';')(i)?;
+            let (i, _) = opt(Parser::space)(i)?;
+
+            Ok((i, field))
+        };
+
+        let (input, field_vec) = many0(field_plus_newline)(fields)?;
+
+        for field in field_vec.iter() {
+            st.add_field(*field);
+        }
+
+        Ok((input, st))
     }
 
     pub fn parse<'a>(data: &str) -> DataGraph<'a> {
@@ -182,12 +217,10 @@ mod tests {
 
     #[test]
     fn parse_field() {
-        /*
         assert_eq!(Parser::parse_field("size_t something"), Ok(("", DataField::new("size_t", "something"))));
         assert_eq!(Parser::parse_field("char* buffer"), Ok(("", DataField::new("char*", "buffer"))));
         assert_eq!(Parser::parse_field("char **** buffer"), Ok(("", DataField::new("char", "buffer"))));
         assert_eq!(Parser::parse_field("char[] buffer"), Ok(("", DataField::new("char[]", "buffer"))));
-        */
         assert_eq!(Parser::parse_field("struct somestruct * ptr"), Ok(("", DataField::new("somestruct", "ptr"))));
     }
 

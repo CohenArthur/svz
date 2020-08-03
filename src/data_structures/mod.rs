@@ -9,7 +9,8 @@ const BASE_PADDING: usize = 4;
 const ACCENT_COLOR: &str = "purple";
 
 /// Fields contained inside the data structures
-#[derive(Debug, Eq, PartialEq, Hash)]
+// FIXME: Do not copy ?
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct DataField<'a> {
     name: &'a str,
     type_name: &'a str,
@@ -47,10 +48,10 @@ impl <'a> DataStructure<'a> {
     }
 
     /// Inserts a field into the data structure
-    pub fn add_field(&mut self, name: &'a str, type_name: &'a str) {
+    pub fn add_field(&mut self, field: DataField<'a>) {
         // Set the padding as the size of the longest type + BASE_PADDING
-        self.padding = std::cmp::max(type_name.len() + BASE_PADDING, self.padding);
-        self.fields.push(DataField::new(name, type_name))
+        self.padding = std::cmp::max(field.type_name.len() + BASE_PADDING, self.padding);
+        self.fields.push(field)
     }
 }
 
