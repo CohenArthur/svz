@@ -38,7 +38,7 @@ impl Parser {
     }
 
     fn identifier(input: &str) -> IResult<&str, &str> {
-        take_while1(|c| !is_space(c as u8))(input)
+        take_while1(|c| !is_space(c as u8) && c != ';')(input)
     }
 
     fn tok<'a>(input: &'a str, tok: &'a str) -> IResult<&'a str, &'a str> {
@@ -94,6 +94,10 @@ impl Parser {
         // Skip the spaces after `typedef`
         let (input, _) = opt(Parser::space)(input)?;
 
+        // Parse the `struct` keyword, if it's ther
+        let (input, _) = opt(Parser::struct_tok)(input)?;
+        let (input, _) = opt(Parser::space)(input)?;
+
         let (input, struct_name) = opt(Parser::identifier)(input)?;
 
         let mut st = match struct_name {
@@ -109,6 +113,7 @@ impl Parser {
         let (input, fields) = delimited(char('{'), is_not("}"), char('}'))(input)?;
 
         let field_plus_newline = |i| {
+            let (i, _) = opt(Parser::space)(i)?;
             let (i, field) =  Parser::parse_field(i)?;
             let (i, _) = char(';')(i)?;
             let (i, _) = opt(Parser::space)(i)?;
@@ -222,6 +227,34 @@ mod tests {
         assert_eq!(Parser::parse_field("char **** buffer"), Ok(("", DataField::new("char", "buffer"))));
         assert_eq!(Parser::parse_field("char[] buffer"), Ok(("", DataField::new("char[]", "buffer"))));
         assert_eq!(Parser::parse_field("struct somestruct * ptr"), Ok(("", DataField::new("somestruct", "ptr"))));
+    }
+
+    #[test]
+    fn parse_basic_struct() {
+        let input = "struct some_name { int f0; char[] buffer; }";
+
+        let mut st = DataStructure::new(Some("some_name"));
+        let f0 = DataField::new("int", "f0");
+        let f1 = DataField::new("char[]", "buffer");
+
+        st.add_field(f0);
+        st.add_field(f1);
+
+        assert_eq!(Parser::parse_struct(input), Ok(("", st)))
+    }
+
+    #[test]
+    fn parse_typedefd_struct() {
+        let input = "typedef struct some_name { int f0; char[] buffer; } some_name";
+
+        let mut st = DataStructure::new(Some("some_name"));
+        let f0 = DataField::new("int", "f0");
+        let f1 = DataField::new("char[]", "buffer");
+
+        st.add_field(f0);
+        st.add_field(f1);
+
+        assert_eq!(Parser::parse_struct(input), Ok(("", st)))
     }
 
     fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
