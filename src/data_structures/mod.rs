@@ -18,10 +18,7 @@ pub struct DataField {
 impl DataField {
     // Create a new DataField
     pub fn new(type_name: String, name: String) -> DataField {
-        DataField {
-            name,
-            type_name
-        }
+        DataField { name, type_name }
     }
 }
 

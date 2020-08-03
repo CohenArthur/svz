@@ -1,12 +1,12 @@
 mod data_graph;
 mod data_structures;
-mod render;
 mod parser;
+mod render;
 
 use data_graph::DataGraph;
 use data_structures::DataStructure;
-use render::Dot;
 use parser::Parser;
+use render::Dot;
 
 fn main() {
     let mut s_0 = DataStructure::new(Some("linked_list".to_string()));

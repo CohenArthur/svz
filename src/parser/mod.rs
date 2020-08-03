@@ -1,10 +1,38 @@
 //! The parser module produces a data graph from a given input
 
+use nom::{
+    branch::alt, bytes::complete::is_not, bytes::complete::tag, bytes::complete::take_while1,
+    character::complete::char, sequence::delimited, IResult,
+};
+
 use crate::data_graph::DataGraph;
 
 pub struct Parser;
 
 impl Parser {
+    fn pointer(input: &str) -> IResult<&str, &str> {
+        alt((
+            take_while1(|c| c == '*'),
+            delimited(char('['), is_not("]"), char(']')),
+        ))(input)
+    }
+
+    fn space(input: &str) -> IResult<&str, &str> {
+        take_while1(|c| c == ' ' || c == '\t')(input)
+    }
+
+    fn identifier(input: &str) -> IResult<&str, &str> {
+        take_while1(|c| c != ' ' && c != '\t')(input)
+    }
+
+    fn typedef_tok(input: &str) -> IResult<&str, &str> {
+        tag("typedef")(input)
+    }
+
+    fn struct_tok(input: &str) -> IResult<&str, &str> {
+        tag("struct")(input)
+    }
+
     pub fn parse<'a>(data: &str) -> DataGraph<'a> {
         DataGraph::new()
     }
@@ -13,7 +41,16 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::data_structures::{DataStructure, DataField};
+    use crate::data_structures::{DataField, DataStructure};
+
+    #[test]
+    fn space() {
+        assert_eq!(Parser::space("    "), Ok(("", "    ")));
+        assert_eq!(Parser::space("  \t"), Ok(("", "  \t")));
+        assert_eq!(Parser::space(" \tSomething"), Ok(("Something", " \t")));
+        assert_eq!(Parser::space("   Something\t\t"), Ok(("Something\t\t", "   ")));
+        assert_eq!(Parser::space("\t\t\t1234"), Ok(("1234", "\t\t\t")));
+    }
 
     fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
         for (key, values) in dg.iter_all() {
