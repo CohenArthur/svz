@@ -1,14 +1,10 @@
 //! The parser module produces a data graph from a given input
 
 use nom::{
-    branch::alt, bytes::complete::is_not, bytes::complete::tag, bytes::complete::take_while1,
-    bytes::complete::take_while,
-    bytes::complete::take_until,
-    bytes::complete::is_a,
-    character::is_alphanumeric,
-    character::is_space,
-    bytes::complete::take,
-    character::complete::char, sequence::delimited, IResult,
+    branch::alt, bytes::complete::is_a, bytes::complete::is_not, bytes::complete::tag,
+    bytes::complete::take, bytes::complete::take_until, bytes::complete::take_while,
+    bytes::complete::take_while1, character::complete::char, character::is_alphanumeric,
+    character::is_space, sequence::delimited, IResult,
 };
 
 use crate::data_graph::DataGraph;
@@ -127,6 +123,12 @@ mod tests {
         assert_eq!(Parser::pointer("[]"), Ok(("", "[]")));
         assert_eq!(Parser::pointer("[] rest"), Ok(("rest", "[]")));
         assert_eq!(Parser::pointer("** rest"), Ok(("rest", "** ")));
+    }
+
+    #[test]
+    fn identifier() {
+        assert_eq!(Parser::identifier("size_t id"), Ok((" id", "size_t")));
+        assert_eq!(Parser::identifier("1255 something"), Ok((" something", "1255")));
     }
 
     fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
