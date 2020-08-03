@@ -4,6 +4,7 @@ use nom::{
     branch::alt, bytes::complete::is_a, bytes::complete::is_not, bytes::complete::tag,
     bytes::complete::take, bytes::complete::take_until, bytes::complete::take_while,
     bytes::complete::take_while1, character::complete::char, character::is_alphanumeric,
+    combinator::opt,
     character::is_space, sequence::delimited, IResult,
 };
 
@@ -39,12 +40,28 @@ impl Parser {
         take_while1(|c| !is_space(c as u8))(input)
     }
 
+    fn tok<'a>(input: &'a str, tok: &'a str) -> IResult<&'a str, &'a str> {
+        tag(tok)(input)
+    }
+
     fn typedef_tok(input: &str) -> IResult<&str, &str> {
-        tag("typedef")(input)
+        Parser::tok(input, "typedef")
     }
 
     fn struct_tok(input: &str) -> IResult<&str, &str> {
-        tag("struct")(input)
+        Parser::tok(input, "struct")
+    }
+
+    fn enum_tok(input: &str) -> IResult<&str, &str> {
+        Parser::tok(input, "enum")
+    }
+
+    fn union_tok(input: &str) -> IResult<&str, &str> {
+        Parser::tok(input, "union")
+    }
+
+    fn parse_type(input: &str) -> IResult<&str, &str> {
+        Ok(("", ""))
     }
 
     fn parse_field(input: &str) -> IResult<&str, DataField> {
@@ -141,6 +158,15 @@ mod tests {
     fn identifier() {
         assert_eq!(Parser::identifier("size_t id"), Ok((" id", "size_t")));
         assert_eq!(Parser::identifier("1255 something"), Ok((" something", "1255")));
+    }
+
+    #[test]
+    fn parse_field() {
+        assert_eq!(Parser::parse_field("size_t something"), Ok(("", DataField::new("size_t", "something"))));
+        assert_eq!(Parser::parse_field("char* buffer"), Ok(("", DataField::new("char*", "buffer"))));
+        assert_eq!(Parser::parse_field("char **** buffer"), Ok(("", DataField::new("char ****", "buffer"))));
+        assert_eq!(Parser::parse_field("char[] buffer"), Ok(("", DataField::new("char[]", "buffer"))));
+        assert_eq!(Parser::parse_field("struct somestruct * ptr"), Ok(("", DataField::new("struct somestruct *", "ptr"))));
     }
 
     fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
