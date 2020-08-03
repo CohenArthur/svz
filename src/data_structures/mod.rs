@@ -10,16 +10,32 @@ const ACCENT_COLOR: &str = "purple";
 
 /// Fields contained inside the data structures
 #[derive(Debug, Eq, PartialEq, Hash)]
-struct DataField {
+pub struct DataField {
     name: String,
     type_name: String,
+}
+
+impl DataField {
+    // Create a new DataField
+    pub fn new(type_name: String, name: String) -> DataField {
+        DataField {
+            name,
+            type_name
+        }
+    }
 }
 
 /// Struct used to represent the different data structures that svz will parse
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct DataStructure {
     pub name: Option<String>,
+
+    #[cfg(test)]
+    pub fields: Vec<DataField>,
+
+    #[cfg(not(test))]
     fields: Vec<DataField>,
+
     padding: usize,
 }
 
@@ -37,7 +53,7 @@ impl DataStructure {
     pub fn add_field(&mut self, name: String, type_name: String) {
         // Set the padding as the size of the longest type + BASE_PADDING
         self.padding = std::cmp::max(type_name.len() + BASE_PADDING, self.padding);
-        self.fields.push(DataField { name, type_name })
+        self.fields.push(DataField::new(name, type_name))
     }
 }
 
