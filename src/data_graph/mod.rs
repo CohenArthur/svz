@@ -31,7 +31,7 @@ use crate::render::Dot;
 
 /// Basic multimap
 pub struct DataGraph<'a> {
-    data: MultiMap<&'a DataStructure, &'a DataStructure>,
+    data: MultiMap<&'a DataStructure<'a>, &'a DataStructure<'a>>,
 }
 
 impl<'a> DataGraph<'a> {

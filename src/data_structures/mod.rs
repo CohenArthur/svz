@@ -10,35 +10,35 @@ const ACCENT_COLOR: &str = "purple";
 
 /// Fields contained inside the data structures
 #[derive(Debug, Eq, PartialEq, Hash)]
-pub struct DataField {
-    name: String,
-    type_name: String,
+pub struct DataField<'a> {
+    name: &'a str,
+    type_name: &'a str,
 }
 
-impl DataField {
+impl <'a> DataField<'a> {
     // Create a new DataField
-    pub fn new(type_name: String, name: String) -> DataField {
+    pub fn new(type_name: &'a str, name: &'a str) -> DataField<'a> {
         DataField { name, type_name }
     }
 }
 
 /// Struct used to represent the different data structures that svz will parse
 #[derive(Debug, Eq, PartialEq, Hash)]
-pub struct DataStructure {
-    pub name: Option<String>,
+pub struct DataStructure<'a> {
+    pub name: Option<&'a str>,
 
     #[cfg(test)]
-    pub fields: Vec<DataField>,
+    pub fields: Vec<DataField<'a>>,
 
     #[cfg(not(test))]
-    fields: Vec<DataField>,
+    fields: Vec<DataField<'a>>,
 
     padding: usize,
 }
 
-impl DataStructure {
+impl <'a> DataStructure<'a> {
     /// Create a new data structure with a given name
-    pub fn new(name: Option<String>) -> DataStructure {
+    pub fn new(name: Option<&'a str>) -> DataStructure<'a> {
         DataStructure {
             name,
             fields: vec![],
@@ -47,14 +47,14 @@ impl DataStructure {
     }
 
     /// Inserts a field into the data structure
-    pub fn add_field(&mut self, name: String, type_name: String) {
+    pub fn add_field(&mut self, name: &'a str, type_name: &'a str) {
         // Set the padding as the size of the longest type + BASE_PADDING
         self.padding = std::cmp::max(type_name.len() + BASE_PADDING, self.padding);
         self.fields.push(DataField::new(name, type_name))
     }
 }
 
-impl render::Dot for DataStructure {
+impl render::Dot for DataStructure<'_> {
     fn to_dot(&self) -> String {
         let mut base = format!("{0} [label=<<B>struct {0}</B>", self.name.as_ref().unwrap(),); // FIXME: Dont' unwrap
         for field in self.fields.iter() {

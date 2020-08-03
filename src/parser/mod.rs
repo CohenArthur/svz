@@ -8,6 +8,7 @@ use nom::{
 };
 
 use crate::data_graph::DataGraph;
+use crate::data_structures::{DataField, DataStructure};
 
 pub struct Parser;
 
@@ -18,7 +19,7 @@ impl Parser {
         let (input, _) = char(']')(input)?;
         let (input, _) = take_while(|c| is_space(c as u8))(input)?;
 
-        // FIXME: Get actual value contained between brackets
+        // FIXME: Get actual value contained between brackets. Maybe recognize() ?
         Ok((input, "[]"))
     }
 
@@ -46,6 +47,18 @@ impl Parser {
         tag("struct")(input)
     }
 
+    fn parse_field(input: &str) -> IResult<&str, DataField> {
+        let (input, type_name) = Parser::identifier(input)?;
+        let (input, _) = Parser::space(input)?;
+        let (input, name) = Parser::identifier(input)?;
+
+        Ok((input, DataField::new(type_name, name)))
+    }
+
+    fn parse_struct(input: &str) -> IResult<&str, DataStructure> {
+        Ok((input, DataStructure::new(Some("test"))))
+    }
+
     pub fn parse<'a>(data: &str) -> DataGraph<'a> {
         DataGraph::new()
     }
@@ -54,7 +67,6 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::data_structures::{DataField, DataStructure};
 
     #[test]
     fn space() {
@@ -133,9 +145,9 @@ mod tests {
 
     fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
         for (key, values) in dg.iter_all() {
-            if key.name.as_ref().unwrap() == lhs {
+            if key.name.unwrap() == lhs {
                 for value in values {
-                    if value.name.as_ref().unwrap() == rhs {
+                    if value.name.unwrap() == rhs {
                         assert!(true);
                     }
                 }
@@ -145,9 +157,9 @@ mod tests {
         assert!(false);
     }
 
-    fn get<'a>(dg: &'a DataGraph, name: &str) -> Option<&'a DataStructure> {
+    fn get<'a>(dg: &'a DataGraph, name: &str) -> Option<&'a DataStructure<'a>> {
         for (key, _) in dg.iter_all() {
-            if key.name.as_ref().unwrap() == name {
+            if key.name.unwrap() == name {
                 return Some(key);
             }
         }
