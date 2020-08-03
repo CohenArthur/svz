@@ -7,8 +7,6 @@ use data_structures::DataStructure;
 use render::Dot;
 
 fn main() {
-    println!("digraph svz {{");
-
     let mut s_0 = DataStructure::new(Some("SomeStruct".to_string()));
 
     s_0.add_field("buffer".to_string(), "char *".to_string());
@@ -27,5 +25,4 @@ fn main() {
     dg.add_edge(&s_0, &s_1);
 
     println!("{}", dg.to_dot());
-    println!("}}");
 }

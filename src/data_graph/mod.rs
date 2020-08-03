@@ -50,7 +50,7 @@ impl<'a> DataGraph<'a> {
 
 impl Dot for DataGraph<'_> {
     fn to_dot(&self) -> String {
-        let mut base = String::new();
+        let mut base = String::from("digraph svz {");
 
         for (key, values) in self.data.iter_all() {
             base.push_str(&format!("{}\n", key.to_dot()));
@@ -64,6 +64,7 @@ impl Dot for DataGraph<'_> {
             }
         }
 
+        base.push('}');
         base
     }
 }
