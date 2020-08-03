@@ -8,7 +8,8 @@ mod data_graph;
 use parser::Parser;
 
 fn main() {
-    for file in env::args() {
+    for file in env::args().skip(1) {
+        dbg!(&file);
         let input = fs::read_to_string(file).unwrap();
 
         println!("{}", Parser::parse(&input));

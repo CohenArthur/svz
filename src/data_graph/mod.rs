@@ -46,12 +46,17 @@ impl<'a> DataGraph<'a> {
     pub fn add_edge(&mut self, lhs: &'a DataStructure, rhs: &'a DataStructure) {
         self.data.insert(lhs, rhs)
     }
+
+    #[cfg(test)]
+    pub fn iter_all(&self) -> multimap::IterAll<'_, &DataStructure, Vec<&DataStructure>>{
+        self.data.iter_all()
+    }
 }
 
 impl Dot for DataGraph<'_> {
     fn to_dot(&self) -> String {
         // Graphviz header
-        let mut base = String::from("digraph svz {");
+        let mut base = String::from("digraph svz {\n");
 
         for (key, values) in self.data.iter_all() {
             base.push_str(&format!("{}\n", key.to_dot()));
@@ -65,7 +70,7 @@ impl Dot for DataGraph<'_> {
                     "{} -> {};\n",
                     key.name.as_ref().unwrap(),
                     value.name.as_ref().unwrap()
-                )); // FIXME: NO unwrap
+                )); // FIXME: No unwrap
             }
         }
 

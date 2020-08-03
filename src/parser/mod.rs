@@ -34,7 +34,7 @@ impl Parser {
     }
 
     fn space(input: &str) -> IResult<&str, &str> {
-        take_while1(|c| is_space(c as u8))(input)
+        take_while1(|c| is_space(c as u8) || c == '\n')(input)
     }
 
     fn identifier(input: &str) -> IResult<&str, &str> {
