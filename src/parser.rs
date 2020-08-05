@@ -37,7 +37,7 @@ impl Parser {
     }
 
     fn identifier(input: &str) -> IResult<&str, &str> {
-        take_while1(|c| !is_space(c as u8) && c != ';')(input)
+        take_while1(|c| !is_space(c as u8) && c != ';' && c != '\n')(input)
     }
 
     fn tok<'a>(input: &'a str, tok: &'a str) -> IResult<&'a str, &'a str> {
@@ -98,6 +98,7 @@ impl Parser {
         let (input, _) = opt(Parser::space)(input)?;
 
         let (input, struct_name) = opt(Parser::identifier)(input)?;
+        let (input, _) = opt(Parser::space)(input)?;
 
         let mut st = match struct_name {
             Some(name) => DataStructure::new(Some(name)),
