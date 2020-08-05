@@ -21,16 +21,6 @@ impl<'a> DataField<'a> {
     pub fn new(type_name: &'a str, name: &'a str) -> DataField<'a> {
         DataField { name, type_name }
     }
-
-    /// Return the name of a field
-    pub fn name(&self) -> &str {
-        self.name
-    }
-
-    /// Return the type_name of a field
-    pub fn type_name(&self) -> &str {
-        self.type_name
-    }
 }
 
 /// Struct used to represent the different data structures that svz will parse
@@ -61,11 +51,6 @@ impl<'a> DataStructure<'a> {
     /// Return the name of a DataStructure
     pub fn name(&self) -> Option<&str> {
         self.name
-    }
-
-    /// Return the fields of a DataStructure
-    pub fn fields(&self) -> &Vec<DataField> {
-        self.fields.as_ref()
     }
 
     /// Whether or not a datastructure contains a certain field
