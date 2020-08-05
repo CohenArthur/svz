@@ -5,7 +5,9 @@ mod data_structures;
 mod parser;
 mod render;
 
+use data_graph::DataGraph;
 use parser::Parser;
+use render::Dot;
 
 fn main() {
     // Panic if there is not enough arguments
@@ -13,5 +15,5 @@ fn main() {
 
     let input = fs::read_to_string(file).unwrap();
 
-    println!("{}", Parser::parse(&input));
+    println!("{}", Parser::parse(&input).to_dot());
 }

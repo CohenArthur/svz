@@ -23,12 +23,12 @@ impl<'a> DataField<'a> {
     }
 
     /// Return the name of a field
-    pub fn get_name(&self) -> &str {
+    pub fn name(&self) -> &str {
         self.name
     }
 
     /// Return the type_name of a field
-    pub fn get_type_name(&self) -> &str {
+    pub fn type_name(&self) -> &str {
         self.type_name
     }
 }
@@ -59,13 +59,24 @@ impl<'a> DataStructure<'a> {
     }
 
     /// Return the name of a DataStructure
-    pub fn get_name(&self) -> Option<&str> {
+    pub fn name(&self) -> Option<&str> {
         self.name
     }
 
     /// Return the fields of a DataStructure
-    pub fn get_fields(&self) -> &Vec<DataField> {
+    pub fn fields(&self) -> &Vec<DataField> {
         self.fields.as_ref()
+    }
+
+    /// Whether or not a datastructure contains a certain field
+    pub fn fields_contain(&self, type_name: &str) -> bool {
+        for field in self.fields.iter() {
+            if field.type_name == type_name {
+                return true;
+            }
+        }
+
+        false
     }
 }
 

@@ -24,45 +24,35 @@
 //!
 //! It's basically just a multimap with a few methods
 
-use std::collections::{HashMap, HashSet};
+use petgraph::{graph::NodeIndex, Graph};
 
 use crate::data_structures::DataStructure;
 use crate::render::Dot;
 
-// Define helper types cause they're a mouthful
-type Key<'k> = &'k DataStructure<'k>;
-type Value<'v> = HashSet<&'v DataStructure<'v>>;
-
 /// Basic multimap
 pub struct DataGraph<'a> {
-    data: HashMap<Key<'a>, Value<'a>>,
+    data: Graph<DataStructure<'a>, ()>,
 }
 
 impl<'a> DataGraph<'a> {
     /// Create a new empty struct graph
     pub fn new() -> DataGraph<'a> {
-        DataGraph {
-            data: HashMap::new(),
-        }
+        DataGraph { data: Graph::new() }
     }
 
     /// Add a node without any edges
-    pub fn add_node(&mut self, node: Key<'a>) -> Option<Value> {
-        // Do not "erase" the existing edges in case they exit already
-        match self.data.contains_key(node) {
-            // Insert a new key with no edges
-            false => self.data.insert(node, HashSet::new()),
-            true => None,
+    pub fn add_node(&mut self, node: DataStructure<'a>) {
+        self.data.add_node(node);
+
+        // Go through the graph to add missing edges
+        for s_idx in self.data.node_indices() {
+            for d_idx in self.data.node_indices() {
+                // FIXME: Don't unwrap
+                if self.data[s_idx].fields_contain(self.data[d_idx].name().unwrap()) {
+                    self.data.add_edge(s_idx, d_idx, ());
+                }
+            }
         }
-    }
-
-    /// Add a "link" between two structs
-    pub fn add_edge(&mut self, lhs: Key<'a>, rhs: Key<'a>) {
-        self.add_node(lhs);
-        self.add_node(rhs);
-
-        // We can unwrap since we KNOW the key alreay exists.
-        self.data.get_mut(lhs).unwrap().insert(rhs);
     }
 }
 
@@ -71,7 +61,19 @@ impl Dot for DataGraph<'_> {
         // Graphviz header
         let mut base = String::from("digraph svz {\n");
 
-        for (key, values) in self.data.iter() {
+        for source in self.data.node_indices() {
+            base.push_str(&format!("{}\n", self.data[source].to_dot()));
+            for dest in self.data.neighbors(source) {
+                base.push_str(&format!(
+                    "{} -> {};\n",
+                    self.data[source].name().as_ref().unwrap(),
+                    self.data[dest].name().as_ref().unwrap(),
+                ));
+            }
+        }
+
+        /*
+        for (key, values) in self.data. {
             base.push_str(&format!("{}\n", key.to_dot()));
 
             // Add each dependency
@@ -79,11 +81,12 @@ impl Dot for DataGraph<'_> {
                 // Add the edge
                 base.push_str(&format!(
                     "{} -> {};\n",
-                    key.get_name().as_ref().unwrap(),
-                    value.get_name().as_ref().unwrap()
+                    key.name().as_ref().unwrap(),
+                    value.name().as_ref().unwrap()
                 )); // FIXME: No unwrap
             }
         }
+        */
 
         // Closing bracket from the header
         base.push('}');
