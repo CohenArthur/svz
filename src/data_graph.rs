@@ -40,6 +40,7 @@ impl<'a> DataGraph<'a> {
         DataGraph { data: Graph::new() }
     }
 
+    // FIXME: This needs to be improved. Its complexity is absolutely ridiculous
     /// Add a node without any edges
     pub fn add_node(&mut self, node: DataStructure<'a>) {
         self.data.add_node(node);
@@ -47,9 +48,11 @@ impl<'a> DataGraph<'a> {
         // Go through the graph to add missing edges
         for s_idx in self.data.node_indices() {
             for d_idx in self.data.node_indices() {
-                // FIXME: Don't unwrap
-                if self.data[s_idx].fields_contain(self.data[d_idx].name().unwrap()) {
-                    self.data.add_edge(s_idx, d_idx, ());
+                if !self.data.contains_edge(s_idx, d_idx) {
+                    // FIXME: Don't unwrap
+                    if self.data[s_idx].fields_contain(self.data[d_idx].name().unwrap()) {
+                        self.data.add_edge(s_idx, d_idx, ());
+                    }
                 }
             }
         }
