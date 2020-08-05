@@ -17,23 +17,27 @@ pub struct DataField<'a> {
 }
 
 impl<'a> DataField<'a> {
-    // Create a new DataField
+    /// Create a new DataField
     pub fn new(type_name: &'a str, name: &'a str) -> DataField<'a> {
         DataField { name, type_name }
+    }
+
+    /// Return the name of a field
+    pub fn get_name(&self) -> &str {
+        self.name
+    }
+
+    /// Return the type_name of a field
+    pub fn get_type_name(&self) -> &str {
+        self.type_name
     }
 }
 
 /// Struct used to represent the different data structures that svz will parse
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct DataStructure<'a> {
-    pub name: Option<&'a str>,
-
-    #[cfg(test)]
-    pub fields: Vec<DataField<'a>>,
-
-    #[cfg(not(test))]
+    name: Option<&'a str>,
     fields: Vec<DataField<'a>>,
-
     padding: usize,
 }
 
@@ -52,6 +56,16 @@ impl<'a> DataStructure<'a> {
         // Set the padding as the size of the longest type + BASE_PADDING
         self.padding = std::cmp::max(field.type_name.len() + BASE_PADDING, self.padding);
         self.fields.push(field)
+    }
+
+    /// Return the name of a DataStructure
+    pub fn get_name(&self) -> Option<&str> {
+        self.name
+    }
+
+    /// Return the fields of a DataStructure
+    pub fn get_fields(&self) -> &Vec<DataField> {
+        self.fields.as_ref()
     }
 }
 

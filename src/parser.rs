@@ -37,7 +37,7 @@ impl Parser {
     }
 
     fn identifier(input: &str) -> IResult<&str, &str> {
-        take_while1(|c| !is_space(c as u8) && c != ';')(input)
+        take_while1(|c| !is_space(c as u8) && c != ';' && c != '\n')(input)
     }
 
     fn tok<'a>(input: &'a str, tok: &'a str) -> IResult<&'a str, &'a str> {
@@ -98,6 +98,7 @@ impl Parser {
         let (input, _) = opt(Parser::space)(input)?;
 
         let (input, struct_name) = opt(Parser::identifier)(input)?;
+        let (input, _) = opt(Parser::space)(input)?;
 
         let mut st = match struct_name {
             Some(name) => DataStructure::new(Some(name)),
@@ -145,7 +146,18 @@ impl Parser {
             Err(_) => vec![],
         };
 
-        struct_vec.iter().for_each(|s| dg.add_edge(s, s));
+        // FIXME: Cleanup this mess
+        struct_vec.iter().for_each(|s| {
+            dg.add_node(s);
+            struct_vec.iter().for_each(|d| {
+                let fields = s.get_fields();
+                fields.iter().for_each(|df| {
+                    if df.get_type_name() == d.get_name().unwrap() {
+                        dg.add_edge(s, d);
+                    }
+                });
+            })
+        });
 
         // FIXME: Return DataGraph and not String
         dg.to_dot()
@@ -300,30 +312,6 @@ mod tests {
         st.add_field(f1);
 
         assert_eq!(Parser::parse_struct(input), Ok((" some_name", st)))
-    }
-
-    fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
-        for (key, values) in dg.iter_all() {
-            if key.name.unwrap() == lhs {
-                for value in values {
-                    if value.name.unwrap() == rhs {
-                        assert!(true);
-                    }
-                }
-            }
-        }
-
-        assert!(false);
-    }
-
-    fn get<'a>(dg: &'a DataGraph, name: &str) -> Option<&'a DataStructure<'a>> {
-        for (key, _) in dg.iter_all() {
-            if key.name.unwrap() == name {
-                return Some(key);
-            }
-        }
-
-        None
     }
 
     /*
