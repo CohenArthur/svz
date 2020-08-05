@@ -3,23 +3,23 @@
 //!
 //! For example, in the following example:
 //! ```c
-//! struct node {
+//! struct ll_node {
 //!     void *data;
 //!
-//!     struct node *next;
-//!     struct node *prev;
+//!     struct ll_node *next;
+//!     struct ll_node *prev;
 //! }
 //!
 //! struct d_linked_list {
 //!     size_t size;
 //!     size_t capacity;
 //!
-//!     struct node *head;
-//!     struct node *tail;
+//!     struct ll_node *head;
+//!     struct ll_node *tail;
 //! }
 //! ```
 //!
-//! the `d_linked_list` structure is linked to the `node` one, which is linked
+//! the `d_linked_list` structure is linked to the `ll_node` one, which is linked
 //! to itself.
 //!
 //! It's basically just a multimap with a few methods
@@ -79,8 +79,8 @@ impl Dot for DataGraph<'_> {
                 // Add the edge
                 base.push_str(&format!(
                     "{} -> {};\n",
-                    key.name.as_ref().unwrap(),
-                    value.name.as_ref().unwrap()
+                    key.get_name().as_ref().unwrap(),
+                    value.get_name().as_ref().unwrap()
                 )); // FIXME: No unwrap
             }
         }
