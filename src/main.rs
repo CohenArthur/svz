@@ -8,10 +8,10 @@ mod render;
 use parser::Parser;
 
 fn main() {
-    for file in env::args().skip(1) {
-        dbg!(&file);
-        let input = fs::read_to_string(file).unwrap();
+    // Panic if there is not enough arguments
+    let file = env::args().nth(1).unwrap();
 
-        println!("{}", Parser::parse(&input));
-    }
+    let input = fs::read_to_string(file).unwrap();
+
+    println!("{}", Parser::parse(&input));
 }
