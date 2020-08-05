@@ -85,14 +85,20 @@ impl Parser {
         Ok((input, DataField::new(type_name, name)))
     }
 
-    fn parse_struct(input: &str) -> IResult<&str, DataStructure> {
+    fn parse_struct(input: &str) -> IResult<&str, Option<DataStructure>> {
         // A structure declaration can start with typedef
         let (input, _) = opt(Parser::typedef_tok)(input)?;
         // Skip the spaces after `typedef`
         let (input, _) = opt(Parser::space)(input)?;
 
-        // Parse the `struct` keyword, if it's ther
-        let (input, _) = opt(Parser::struct_tok)(input)?;
+        // Parse the `struct` keyword, if it's not there return.
+        // This happens when parsing a typedef such as `typedef type name` where the
+        // type is not a struct.
+        let (input, _) = match Parser::struct_tok(input) {
+            Ok((input, matched)) => (input, matched),
+            Err(_) => { return Ok((input, None)); },
+        };
+
         let (input, _) = opt(Parser::space)(input)?;
 
         let (input, struct_name) = opt(Parser::identifier)(input)?;
@@ -128,7 +134,7 @@ impl Parser {
 
         field_vec.iter().for_each(|field| st.add_field(*field));
 
-        Ok((input, st))
+        Ok((input, Some(st)))
     }
 
     pub fn parse(input: &str) -> DataGraph {
@@ -145,7 +151,11 @@ impl Parser {
         };
 
         for _ in 0..struct_vec.len() {
-            dg.add_node(struct_vec.pop().unwrap());
+            // We can unwrap since we only pop struct_vec.len() - 1 times
+            match struct_vec.pop().unwrap() {
+                Some(stru) => { dg.add_node(stru); },
+                None => {},
+            }
         }
 
         dg
@@ -285,7 +295,7 @@ mod tests {
         st.add_field(f0);
         st.add_field(f1);
 
-        assert_eq!(Parser::parse_struct(input), Ok(("", st)))
+        assert_eq!(Parser::parse_struct(input), Ok(("", Some(st))))
     }
 
     #[test]
@@ -299,7 +309,14 @@ mod tests {
         st.add_field(f0);
         st.add_field(f1);
 
-        assert_eq!(Parser::parse_struct(input), Ok((" some_name", st)))
+        assert_eq!(Parser::parse_struct(input), Ok((" some_name", Some(st))))
+    }
+
+    #[test]
+    fn t_parse_typedefd_non_struct() {
+        let input = "typedef void NotVoid";
+
+        assert_eq!(Parser::parse_struct(input), Ok(("void NotVoid", None)));
     }
 
     /*
