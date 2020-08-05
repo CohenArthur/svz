@@ -96,7 +96,9 @@ impl Parser {
         // type is not a struct.
         let (input, _) = match Parser::struct_tok(input) {
             Ok((input, matched)) => (input, matched),
-            Err(_) => { return Ok((input, None)); },
+            Err(_) => {
+                return Ok((input, None));
+            }
         };
 
         let (input, _) = opt(Parser::space)(input)?;
@@ -153,8 +155,10 @@ impl Parser {
         for _ in 0..struct_vec.len() {
             // We can unwrap since we only pop struct_vec.len() - 1 times
             match struct_vec.pop().unwrap() {
-                Some(stru) => { dg.add_node(stru); },
-                None => {},
+                Some(stru) => {
+                    dg.add_node(stru);
+                }
+                None => {}
             }
         }
 
