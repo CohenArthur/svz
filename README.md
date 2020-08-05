@@ -19,7 +19,7 @@ The `svz` binary produces a .dot graph.
 
 ## Limitations
 
-* As of right now, `svz` can only handle one file at a time. #12
+* As of right now, `svz` can only handle [one file at a time](https://github.com/CohenArthur/svz/issues/12).
 * It's also not battle-tested when it comes to weird structure declarations, such as
 those without a name and simply a typdef.
 * This isn't tested yet, but I fear `svz` is quite slow. Some improvements can definitely
