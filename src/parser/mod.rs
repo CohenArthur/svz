@@ -146,7 +146,18 @@ impl Parser {
             Err(_) => vec![],
         };
 
-        struct_vec.iter().for_each(|s| dg.add_edge(s, s));
+        // FIXME: Cleanup this mess
+        struct_vec.iter().for_each(|s| {
+            dg.add_node(s);
+            struct_vec.iter().for_each(|d| {
+                let fields = s.get_fields();
+                fields.iter().for_each(|df| {
+                    if df.get_type_name() == d.get_name().unwrap() {
+                        dg.add_edge(s, d);
+                    }
+                });
+            })
+        });
 
         // FIXME: Return DataGraph and not String
         dg.to_dot()
