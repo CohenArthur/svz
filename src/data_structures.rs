@@ -82,7 +82,8 @@ impl<'a> DataStructure<'a> {
 
 impl render::Dot for DataStructure<'_> {
     fn to_dot(&self) -> String {
-        let mut base = format!("{0} [label=<<B>struct {0}</B>", self.name.as_ref().unwrap(),); // FIXME: Dont' unwrap
+        // FIXME: Dont' unwrap
+        let mut base = format!("{0} [label=<<B>struct {0}</B>", self.name.as_ref().unwrap(),);
         for field in self.fields.iter() {
             // Newline + align left
             base.push_str("<BR ALIGN=\"LEFT\"/>");

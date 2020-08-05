@@ -72,22 +72,6 @@ impl Dot for DataGraph<'_> {
             }
         }
 
-        /*
-        for (key, values) in self.data. {
-            base.push_str(&format!("{}\n", key.to_dot()));
-
-            // Add each dependency
-            for value in values.iter() {
-                // Add the edge
-                base.push_str(&format!(
-                    "{} -> {};\n",
-                    key.name().as_ref().unwrap(),
-                    value.name().as_ref().unwrap()
-                )); // FIXME: No unwrap
-            }
-        }
-        */
-
         // Closing bracket from the header
         base.push('}');
         base
