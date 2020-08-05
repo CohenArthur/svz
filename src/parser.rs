@@ -302,30 +302,6 @@ mod tests {
         assert_eq!(Parser::parse_struct(input), Ok((" some_name", st)))
     }
 
-    fn assert_edge(dg: &DataGraph, lhs: &str, rhs: &str) {
-        for (key, values) in dg.iter_all() {
-            if key.name.unwrap() == lhs {
-                for value in values {
-                    if value.name.unwrap() == rhs {
-                        assert!(true);
-                    }
-                }
-            }
-        }
-
-        assert!(false);
-    }
-
-    fn get<'a>(dg: &'a DataGraph, name: &str) -> Option<&'a DataStructure<'a>> {
-        for (key, _) in dg.iter_all() {
-            if key.name.unwrap() == name {
-                return Some(key);
-            }
-        }
-
-        None
-    }
-
     /*
     #[test]
     fn basic_struct() {

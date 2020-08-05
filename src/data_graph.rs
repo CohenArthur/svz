@@ -46,6 +46,7 @@ impl<'a> DataGraph<'a> {
         }
     }
 
+    /// Add a node without any edges
     pub fn add_node(&mut self, node: Key<'a>) -> Option<Value> {
         // Do not "erase" the existing edges in case they exit already
         match self.data.contains_key(node) {
