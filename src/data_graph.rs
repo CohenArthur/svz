@@ -24,32 +24,45 @@
 //!
 //! It's basically just a multimap with a few methods
 
-use multimap::MultiMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::data_structures::DataStructure;
 use crate::render::Dot;
 
+// Define helper types cause they're a mouthful
+type Key<'k> = &'k DataStructure<'k>;
+type Value<'v> = HashSet<&'v DataStructure<'v>>;
+
 /// Basic multimap
 pub struct DataGraph<'a> {
-    data: MultiMap<&'a DataStructure<'a>, &'a DataStructure<'a>>,
+    data: HashMap<Key<'a>, Value<'a>>,
 }
 
 impl<'a> DataGraph<'a> {
     /// Create a new empty struct graph
     pub fn new() -> DataGraph<'a> {
         DataGraph {
-            data: MultiMap::new(),
+            data: HashMap::new(),
+        }
+    }
+
+    /// Add a node without any edges
+    pub fn add_node(&mut self, node: Key<'a>) -> Option<Value> {
+        // Do not "erase" the existing edges in case they exit already
+        match self.data.contains_key(node) {
+            // Insert a new key with no edges
+            false => self.data.insert(node, HashSet::new()),
+            true => None,
         }
     }
 
     /// Add a "link" between two structs
-    pub fn add_edge(&mut self, lhs: &'a DataStructure, rhs: &'a DataStructure) {
-        self.data.insert(lhs, rhs)
-    }
+    pub fn add_edge(&mut self, lhs: Key<'a>, rhs: Key<'a>) {
+        self.add_node(lhs);
+        self.add_node(rhs);
 
-    #[cfg(test)]
-    pub fn iter_all(&self) -> multimap::IterAll<'_, &DataStructure, Vec<&DataStructure>>{
-        self.data.iter_all()
+        // We can unwrap since we KNOW the key alreay exists.
+        self.data.get_mut(lhs).unwrap().insert(rhs);
     }
 }
 
@@ -58,13 +71,11 @@ impl Dot for DataGraph<'_> {
         // Graphviz header
         let mut base = String::from("digraph svz {\n");
 
-        for (key, values) in self.data.iter_all() {
+        for (key, values) in self.data.iter() {
             base.push_str(&format!("{}\n", key.to_dot()));
 
             // Add each dependency
             for value in values.iter() {
-                base.push_str(&format!("{}\n", value.to_dot()));
-
                 // Add the edge
                 base.push_str(&format!(
                     "{} -> {};\n",
