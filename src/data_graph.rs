@@ -24,7 +24,7 @@
 //!
 //! It's basically just a multimap with a few methods
 
-use petgraph::{graph::NodeIndex, Graph};
+use petgraph::Graph;
 
 use crate::data_structures::DataStructure;
 use crate::render::Dot;
