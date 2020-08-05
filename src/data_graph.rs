@@ -79,8 +79,8 @@ impl Dot for DataGraph<'_> {
                 // Add the edge
                 base.push_str(&format!(
                     "{} -> {};\n",
-                    key.get_name().as_ref().unwrap(),
-                    value.get_name().as_ref().unwrap()
+                    key.name().as_ref().unwrap(),
+                    value.name().as_ref().unwrap()
                 )); // FIXME: No unwrap
             }
         }

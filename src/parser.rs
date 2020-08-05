@@ -6,8 +6,6 @@ use nom::{
     character::is_space, combinator::opt, multi::many0, sequence::delimited, IResult,
 };
 
-use crate::render::Dot;
-
 use crate::data_graph::DataGraph;
 use crate::data_structures::{DataField, DataStructure};
 
@@ -133,7 +131,7 @@ impl Parser {
         Ok((input, st))
     }
 
-    pub fn parse<'a>(input: &'a str) -> String {
+    pub fn parse(input: &str) -> DataGraph {
         let mut dg = DataGraph::new();
 
         let any_plus_struct = |i| {
@@ -146,21 +144,11 @@ impl Parser {
             Err(_) => vec![],
         };
 
-        // FIXME: Cleanup this mess
-        struct_vec.iter().for_each(|s| {
-            dg.add_node(s);
-            struct_vec.iter().for_each(|d| {
-                let fields = s.get_fields();
-                fields.iter().for_each(|df| {
-                    if df.get_type_name() == d.get_name().unwrap() {
-                        dg.add_edge(s, d);
-                    }
-                });
-            })
-        });
+        /*
+        struct_vec.iter().for_each(|s| { dg.add_node(s); } );
+        */
 
-        // FIXME: Return DataGraph and not String
-        dg.to_dot()
+        dg
     }
 }
 
@@ -169,7 +157,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn space() {
+    fn t_space() {
         assert_eq!(Parser::space("    "), Ok(("", "    ")));
         assert_eq!(Parser::space("  \t"), Ok(("", "  \t")));
         assert_eq!(Parser::space(" \tSomething"), Ok(("Something", " \t")));
@@ -181,7 +169,7 @@ mod tests {
     }
 
     #[test]
-    fn struct_tok() {
+    fn t_struct_tok() {
         assert_eq!(Parser::struct_tok("struct"), Ok(("", "struct")));
         assert_eq!(Parser::struct_tok("struct name"), Ok((" name", "struct")));
         assert_eq!(
@@ -191,7 +179,7 @@ mod tests {
     }
 
     #[test]
-    fn typedef_tok() {
+    fn t_typedef_tok() {
         assert_eq!(Parser::typedef_tok("typedef"), Ok(("", "typedef")));
         assert_eq!(
             Parser::typedef_tok("typedef struct"),
@@ -200,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn typedef_struct() {
+    fn t_typedef_struct() {
         match Parser::typedef_tok("typedef struct name { type field0; type field1; }") {
             Ok((remaining, _)) => {
                 let remaining = Parser::space(remaining).unwrap().0;
@@ -214,14 +202,14 @@ mod tests {
     }
 
     #[test]
-    fn asterisks() {
+    fn t_asterisks() {
         assert_eq!(Parser::asterisks("*"), Ok(("", "*")));
         assert_eq!(Parser::asterisks("*****"), Ok(("", "*****")));
         assert_eq!(Parser::asterisks("** *"), Ok(("", "** *")));
     }
 
     #[test]
-    fn array() {
+    fn t_array() {
         assert_eq!(Parser::array("[]"), Ok(("", "[]")));
         assert_eq!(Parser::array("[12]"), Ok(("", "[]")));
         assert_eq!(Parser::array("[MACRO]"), Ok(("", "[]")));
@@ -230,7 +218,7 @@ mod tests {
     }
 
     #[test]
-    fn pointer() {
+    fn t_pointer() {
         assert_eq!(Parser::pointer("*"), Ok(("", "*")));
         assert_eq!(Parser::pointer("[]"), Ok(("", "[]")));
         assert_eq!(Parser::pointer("[] rest"), Ok(("rest", "[]")));
@@ -238,7 +226,7 @@ mod tests {
     }
 
     #[test]
-    fn identifier() {
+    fn t_identifier() {
         assert_eq!(Parser::identifier("size_t id"), Ok((" id", "size_t")));
         assert_eq!(
             Parser::identifier("1255 something"),
@@ -247,7 +235,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_type() {
+    fn t_parse_type() {
         assert_eq!(
             Parser::parse_type("size_t something"),
             Ok(("something", "size_t"))
@@ -263,7 +251,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_field() {
+    fn t_parse_field() {
         assert_eq!(
             Parser::parse_field("size_t something"),
             Ok(("", DataField::new("size_t", "something")))
@@ -287,7 +275,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_basic_struct() {
+    fn t_parse_basic_struct() {
         let input = "struct some_name { int f0; char[] buffer; }";
 
         let mut st = DataStructure::new(Some("some_name"));
@@ -301,7 +289,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_typedefd_struct() {
+    fn t_parse_typedefd_struct() {
         let input = "typedef struct some_name { int f0; char[] buffer; } some_name";
 
         let mut st = DataStructure::new(Some("some_name"));
