@@ -3,7 +3,7 @@ name: svz-coding-style
 on: pull_request
 
 jobs:
-  build:
+  coding-style:
     runs-on: ubuntu-latest
 
     steps:
