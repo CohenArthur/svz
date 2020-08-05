@@ -14,8 +14,11 @@ without looking for them in the whole file.
 
 The `svz` binary produces a .dot graph.
 
-`svz <file> | dot -Txlib` will directly show the graph.
-`svz <file> | dot -Tpng > out.png` will save the graph to a png file named "out.png"
+* `svz <file> | dot -Txlib` will directly show the graph.
+* `svz <file> | dot -Tpng > out.png` will save the graph to a png file named "out.png"
+* Using a [monospaced font](https://en.wikipedia.org/wiki/List_of_monospaced_typefaces) will
+produce a better looking graph. In order to do so, pass the `-Nfontname` option to dot:
+`svz <file> | dot -Tpng -Nfontname="Source Code Pro" > out.png`
 
 ## Limitations
 
