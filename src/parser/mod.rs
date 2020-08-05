@@ -1,9 +1,8 @@
 //! The parser module produces a data graph from a given input
 
 use nom::{
-    branch::alt, bytes::complete::is_not, bytes::complete::tag,
-    bytes::complete::take_until, bytes::complete::take_while,
-    bytes::complete::take_while1, character::complete::char,
+    branch::alt, bytes::complete::is_not, bytes::complete::tag, bytes::complete::take_until,
+    bytes::complete::take_while, bytes::complete::take_while1, character::complete::char,
     character::is_space, combinator::opt, multi::many0, sequence::delimited, IResult,
 };
 
