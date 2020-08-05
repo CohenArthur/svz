@@ -54,7 +54,7 @@ impl<'a> DataGraph<'a> {
     }
 
     #[cfg(test)]
-    pub fn iter_all(&self) -> multimap::IterAll<'_, &DataStructure, Vec<&DataStructure>>{
+    pub fn iter_all(&self) -> multimap::IterAll<'_, &DataStructure, Vec<&DataStructure>> {
         self.data.iter_all()
     }
 }
