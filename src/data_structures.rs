@@ -67,6 +67,17 @@ impl<'a> DataStructure<'a> {
     pub fn fields(&self) -> &Vec<DataField> {
         self.fields.as_ref()
     }
+
+    /// Whether or not a datastructure contains a certain field
+    pub fn fields_contain(&self, type_name: &str) -> bool {
+        for field in self.fields.iter() {
+            if field.type_name == type_name {
+                return true;
+            }
+        }
+
+        false
+    }
 }
 
 impl render::Dot for DataStructure<'_> {

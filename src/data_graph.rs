@@ -44,6 +44,7 @@ impl<'a> DataGraph<'a> {
     pub fn add_node(&mut self, node: DataStructure<'a>) {
         self.data.add_node(node);
 
+        // Go through the graph to add missing edges
         for s_idx in self.data.node_indices() {
             for d_idx in self.data.node_indices() {
                 // FIXME: Don't unwrap

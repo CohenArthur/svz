@@ -139,14 +139,14 @@ impl Parser {
             Parser::parse_struct(i)
         };
 
-        let struct_vec = match many0(any_plus_struct)(input) {
+        let mut struct_vec = match many0(any_plus_struct)(input) {
             Ok((_, struct_vec)) => struct_vec,
             Err(_) => vec![],
         };
 
-        /*
-        struct_vec.iter().for_each(|s| { dg.add_node(s); } );
-        */
+        for _ in 0..struct_vec.len() {
+            dg.add_node(struct_vec.pop().unwrap());
+        }
 
         dg
     }
