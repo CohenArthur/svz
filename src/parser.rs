@@ -13,18 +13,6 @@ use crate::data_structures::{DataField, DataStructure};
 pub struct Parser;
 
 impl Parser {
-    fn array(input: &str) -> IResult<&str, &str> {
-        let origin = input;
-        let (input, _) = char('[')(input)?;
-        let (input, size_tok) = take_while(|c| c != ']')(input)?;
-        let (_, _) = char(']')(input)?;
-
-        // Take what we've recognized from the input
-        let (input, ret_name) = take(2 + size_tok.len())(origin)?;
-
-        Ok((input, ret_name))
-    }
-
     fn asterisks(input: &str) -> IResult<&str, &str> {
         take_while1(|c| c == '*' || is_space(c as u8))(input)
     }
@@ -280,6 +268,10 @@ mod tests {
         );
         assert_eq!(
             Parser::parse_field("char buffer[256]"),
+            Ok(("", DataField::new("char", "buffer[256]")))
+        );
+        assert_eq!(
+            Parser::parse_field("char **buffer[256]"),
             Ok(("", DataField::new("char", "buffer[256]")))
         );
         assert_eq!(
