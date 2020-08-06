@@ -77,12 +77,11 @@ impl Parser {
         Ok((input, type_name))
     }
 
+    // All we know is that the LAST identifier is the name in question.
+    // All the identifiers before + the asterisks are the type name
     fn parse_field(input: &str) -> IResult<&str, DataField> {
-        let (input, type_name) = Parser::parse_type(input)?;
-        let (input, _) = opt(Parser::space)(input)?;
-        let (input, name) = Parser::identifier(input)?;
-
-        Ok((input, DataField::new(type_name, name)))
+        // FIXME: Add logic
+        Ok((input, DataField::new("long", "name")))
     }
 
     fn parse_struct(input: &str) -> IResult<&str, Option<DataStructure>> {
@@ -121,7 +120,6 @@ impl Parser {
         let field_plus_newline = |i| {
             let (i, _) = opt(Parser::space)(i)?;
             let (i, field) = Parser::parse_field(i)?;
-            let (i, _) = char(';')(i)?;
             let (i, _) = opt(Parser::space)(i)?;
 
             Ok((i, field))
@@ -285,6 +283,10 @@ mod tests {
         assert_eq!(
             Parser::parse_field("struct somestruct * ptr"),
             Ok(("", DataField::new("somestruct", "ptr")))
+        );
+        assert_eq!(
+            Parser::parse_field("unsigned long long ptr"),
+            Ok(("", DataField::new("unsigned long long", "ptr")))
         );
     }
 
