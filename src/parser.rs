@@ -14,20 +14,15 @@ pub struct Parser;
 impl Parser {
     fn array(input: &str) -> IResult<&str, &str> {
         let (input, _) = char('[')(input)?;
-        let (input, _) = take_until("]")(input)?;
+        let (input, size_token) = take_while(|c| c != ']')(input)?;
         let (input, _) = char(']')(input)?;
-        let (input, _) = take_while(|c| is_space(c as u8))(input)?;
 
         // FIXME: Get actual value contained between brackets. Maybe recognize() ?
-        Ok((input, "[]"))
+        Ok((input, size_token))
     }
 
     fn asterisks(input: &str) -> IResult<&str, &str> {
         take_while1(|c| c == '*' || is_space(c as u8))(input)
-    }
-
-    fn pointer(input: &str) -> IResult<&str, &str> {
-        alt((Parser::asterisks, Parser::array))(input)
     }
 
     fn space(input: &str) -> IResult<&str, &str> {
@@ -72,7 +67,9 @@ impl Parser {
 
         // Skip pointer notation and spaces
         let (input, type_name) = Parser::identifier(input)?;
-        let (input, _) = opt(Parser::pointer)(input)?;
+        let (input, _) = opt(Parser::asterisks)(input)?;
+
+        // Skip array declarations
 
         Ok((input, type_name))
     }
@@ -224,19 +221,11 @@ mod tests {
 
     #[test]
     fn t_array() {
-        assert_eq!(Parser::array("[]"), Ok(("", "[]")));
-        assert_eq!(Parser::array("[12]"), Ok(("", "[]")));
-        assert_eq!(Parser::array("[MACRO]"), Ok(("", "[]")));
-        assert_eq!(Parser::array("[MACRO + MACRO + 12]"), Ok(("", "[]")));
-        assert_eq!(Parser::array("[MACRO] rest"), Ok(("rest", "[]")));
-    }
-
-    #[test]
-    fn t_pointer() {
-        assert_eq!(Parser::pointer("*"), Ok(("", "*")));
-        assert_eq!(Parser::pointer("[]"), Ok(("", "[]")));
-        assert_eq!(Parser::pointer("[] rest"), Ok(("rest", "[]")));
-        assert_eq!(Parser::pointer("** rest"), Ok(("rest", "** ")));
+        assert_eq!(Parser::array("[]"), Ok(("", "")));
+        assert_eq!(Parser::array("[12]"), Ok(("", "12")));
+        assert_eq!(Parser::array("[MACRO]"), Ok(("", "MACRO")));
+        assert_eq!(Parser::array("[MACRO + MACRO + 12]"), Ok(("", "MACRO + MACRO + 12")));
+        assert_eq!(Parser::array("[MACRO] rest"), Ok((" rest", "MACRO")));
     }
 
     #[test]
