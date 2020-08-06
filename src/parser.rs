@@ -1,9 +1,10 @@
 //! The parser module produces a data graph from a given input
 
 use nom::{
-    branch::alt, bytes::complete::is_not, bytes::complete::tag, bytes::complete::take_until,
-    bytes::complete::take_while, bytes::complete::take_while1, character::complete::char,
-    character::is_space, combinator::opt, multi::many0, sequence::delimited, IResult,
+    branch::alt, bytes::complete::is_not, bytes::complete::tag, bytes::complete::take,
+    bytes::complete::take_until, bytes::complete::take_while, bytes::complete::take_while1,
+    character::complete::char, character::is_space, combinator::opt, multi::many0,
+    sequence::delimited, IResult,
 };
 
 use crate::data_graph::DataGraph;
@@ -13,12 +14,15 @@ pub struct Parser;
 
 impl Parser {
     fn array(input: &str) -> IResult<&str, &str> {
+        let origin = input;
         let (input, _) = char('[')(input)?;
-        let (input, size_token) = take_while(|c| c != ']')(input)?;
-        let (input, _) = char(']')(input)?;
+        let (input, size_tok) = take_while(|c| c != ']')(input)?;
+        let (_, _) = char(']')(input)?;
 
-        // FIXME: Get actual value contained between brackets. Maybe recognize() ?
-        Ok((input, size_token))
+        // Take what we've recognized from the input
+        let (input, ret_name) = take(2 + size_tok.len())(origin)?;
+
+        Ok((input, ret_name))
     }
 
     fn asterisks(input: &str) -> IResult<&str, &str> {
@@ -221,11 +225,14 @@ mod tests {
 
     #[test]
     fn t_array() {
-        assert_eq!(Parser::array("[]"), Ok(("", "")));
-        assert_eq!(Parser::array("[12]"), Ok(("", "12")));
-        assert_eq!(Parser::array("[MACRO]"), Ok(("", "MACRO")));
-        assert_eq!(Parser::array("[MACRO + MACRO + 12]"), Ok(("", "MACRO + MACRO + 12")));
-        assert_eq!(Parser::array("[MACRO] rest"), Ok((" rest", "MACRO")));
+        assert_eq!(Parser::array("[]"), Ok(("", "[]")));
+        assert_eq!(Parser::array("[12]"), Ok(("", "[12]")));
+        assert_eq!(Parser::array("[MACRO]"), Ok(("", "[MACRO]")));
+        assert_eq!(
+            Parser::array("[MACRO + MACRO + 12]"),
+            Ok(("", "[MACRO + MACRO + 12]"))
+        );
+        assert_eq!(Parser::array("[MACRO] rest"), Ok((" rest", "[MACRO]")));
     }
 
     #[test]
@@ -268,8 +275,12 @@ mod tests {
             Ok(("", DataField::new("char", "buffer")))
         );
         assert_eq!(
-            Parser::parse_field("char[] buffer"),
-            Ok(("", DataField::new("char[]", "buffer")))
+            Parser::parse_field("char buffer[]"),
+            Ok(("", DataField::new("char", "buffer[]")))
+        );
+        assert_eq!(
+            Parser::parse_field("char buffer[256]"),
+            Ok(("", DataField::new("char", "buffer[256]")))
         );
         assert_eq!(
             Parser::parse_field("struct somestruct * ptr"),
