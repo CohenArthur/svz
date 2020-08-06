@@ -9,10 +9,16 @@ use parser::Parser;
 use render::Dot;
 
 fn main() {
-    // Panic if there is not enough arguments
-    let file = env::args().nth(1).unwrap();
-
-    let input = fs::read_to_string(file).unwrap();
+    // Read every file into a single string.
+    // This is bad for memory AND performance, but it avoids switching the parser
+    // to a streaming one, which brings its own set of trouble.
+    // TODO: Improve that
+    let input = env::args()
+        .into_iter()
+        .skip(1)
+        .fold(String::new(), |acc, file| {
+            format!("{}{}", acc, fs::read_to_string(file).unwrap())
+        });
 
     println!("{}", Parser::parse(&input).to_dot());
 }
